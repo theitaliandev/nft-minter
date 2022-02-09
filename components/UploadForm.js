@@ -16,14 +16,14 @@ export default function UploadForm() {
                   <div className="px-4 py-5 bg-white space-y-6 sm:p-6">
                     <div className="grid grid-cols-3 gap-6">
                       <div className="col-span-3 sm:col-span-2">
-                        <label htmlFor="nft-name" className="block text-sm font-medium text-gray-700">
+                        <label htmlFor="nftName" className="block text-sm font-medium text-gray-700">
                           NFT Name
                         </label>
                         <div className="mt-1 flex rounded-md shadow-sm">
                           <input
                             type="text"
-                            name="nft-name"
-                            id="nft-name"
+                            name="nftName"
+                            id="nftName"
                             className="focus:ring-indigo-500 focus:border-indigo-500 flex-1 block w-full rounded-md sm:text-sm border-gray-300"
                             placeholder="theItalianDev NFT"
                           />
