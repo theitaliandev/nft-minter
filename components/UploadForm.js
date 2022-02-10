@@ -1,17 +1,82 @@
+import Moralis from 'moralis';
 import Head from 'next/head'
+import { useState } from 'react'
+import { useMoralisFile, useRaribleLazyMint } from 'react-moralis';
 
-export default function UploadForm() {
+export default function UploadForm({logout, user}) {
+
+  const {
+    saveFile,
+  } = useMoralisFile();
+
+
+  const {lazyMint} = useRaribleLazyMint({
+    chain: 'rinkeby',
+    userAddress: user.get('ethAddress'),
+    tokenType: 'ERC1155',
+    supply: 1,
+    royaltiesAmount: 10
+  })
+
+    const [inputFile, setInputFile] = useState(null)
+    const [input, setInput] = useState({
+      nftName: '',
+      description: ''
+    })
+
+    const handleChange = (e) => {
+      setInput(prevState => ({
+        ...prevState,
+        [e.target.name]: e.target.value
+      }))
+    }
+
     return (
         <>
         <Head>
             <title>NFT Minter</title>
         </Head>
         <div className='w-screen h-auto flex justify-end items-center'>
-            <button type="button" className='mt-6 mr-10 py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-black hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>Logout</button>
+            <button onClick={logout} type="button" className='mt-6 mr-10 py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-black hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>Logout</button>
         </div>
         <div className="flex items-center justify-center overflow-y-hidden">
             <div className="w-2/3 max-w-screen mt-6">
-              <form>
+              <form onSubmit={async e => {
+                e.preventDefault()
+                if(inputFile !== null && input.nftName.trim() !== '' && input.description.trim() !== '') {
+                  await saveFile(input.nftName, inputFile, {
+                    saveIPFS: true,
+                    onSuccess: (file) => {
+                      let metadata = {
+                          name: input.nftName,
+                          description: input.description,
+                          image: '/ipfs/' + file._hash
+                      }
+                      saveFile(`metadata ${input.nftName}`, {
+                        base64: btoa(JSON.stringify(metadata))
+                      }, {
+                        saveIPFS: true,
+                        onError: (error) => {
+                          console.log(error)
+                        },
+                        onSuccess: (metadataFile) => {
+                          Moralis.enableWeb3()
+                          lazyMint({
+                            params: {
+                              tokenUri: '/ipfs/' + metadataFile._hash
+                            },
+                            onSuccess: (res) => {
+                              console.log(res)
+                            },
+                            onError: (error) => {
+                              console.log(error)
+                            }
+                          })
+                        }
+                      })
+                    }
+                  })}}}
+              >
                 <div className="shadow sm:rounded-md sm:overflow-hidden">
                   <div className="px-4 py-5 bg-white space-y-6 sm:p-6">
                     <div className="grid grid-cols-3 gap-6">
@@ -26,6 +91,8 @@ export default function UploadForm() {
                             id="nftName"
                             className="focus:ring-indigo-500 focus:border-indigo-500 flex-1 block w-full rounded-md sm:text-sm border-gray-300"
                             placeholder="theItalianDev NFT"
+                            value={input.nftName}
+                            onChange={e => handleChange(e)}
                           />
                         </div>
                       </div>
@@ -42,6 +109,8 @@ export default function UploadForm() {
                           rows={3}
                           className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 mt-1 block w-full sm:text-sm border border-gray-300 rounded-md"
                           placeholder="The only NFT you need to have in your wallet"
+                          value={input.description}
+                          onChange={e => handleChange(e)}
                         />
                       </div>
                       <p className="mt-2 text-sm text-gray-500">
@@ -73,7 +142,7 @@ export default function UploadForm() {
                               className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"
                             >
                               <span>Upload your NFT</span>
-                              <input id="file-upload" name="file-upload" type="file" className="sr-only" />
+                              <input onChange={(e) => setInputFile(e.target.files[0]) } id="file-upload" name="file-upload" type="file" className="sr-only" />
                             </label>
                           </div>
                           <p className="text-xs text-gray-500">PNG, JPG, GIF...</p>
