@@ -4,8 +4,8 @@ import UploadForm from "../components/UploadForm";
 export default function Home() {
   return (
     <div>
-      <AuthPage />
-      {/* <UploadForm /> */}
+      {/* <AuthPage /> */}
+      <UploadForm />
     </div>
   )
 }

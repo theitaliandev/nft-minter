@@ -75,7 +75,6 @@ export default function UploadForm() {
                               <span>Upload your NFT</span>
                               <input id="file-upload" name="file-upload" type="file" className="sr-only" />
                             </label>
-                            <p className="pl-1">or drag and drop</p>
                           </div>
                           <p className="text-xs text-gray-500">PNG, JPG, GIF...</p>
                         </div>
